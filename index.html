@@ -131,10 +131,17 @@
   </div>
 
   <div class="container" id="success-container" style="display:none;">
+    <button id="logout-btn" style="float:left;background:#e74c3c;width:auto;padding:6px 18px;font-size:0.95rem;">تسجيل الخروج</button>
     <div class="success">تم تسجيل الدخول بنجاح!</div>
     <div class="giveaway">
       <h2>مسابقة السحب على هدايا تيليجرام</h2>
       <div class="countdown" id="countdown"></div>
+      <div style="margin-bottom:10px;">
+        <span style="color:#0088cc;font-weight:700;">عدد المشاركين في السحب:</span>
+        <span id="participants-count" style="color:#27ae60;font-weight:700;">0</span>
+      </div>
+      <button id="join-btn" style="background:#27ae60;margin-bottom:18px;">اشترك في السحب الآن</button>
+      <div id="join-success" style="display:none;color:#27ae60;font-weight:700;margin-bottom:10px;">تم الاشتراك بنجاح! حظاً سعيداً 🍀</div>
       <div>سارع بالمشاركة! إعلان الفائزين بعد انتهاء العد التنازلي.</div>
       <div class="gifts">
         <div class="gift">
@@ -142,6 +149,20 @@
           <div class="gift-info">
             <div class="gift-title">اشتراك تيليجرام بريميوم لمدة سنة</div>
             <div class="gift-price">القيمة: 60$</div>
+          </div>
+        </div>
+        <div class="gift">
+          <img src="https://cdn3.emoji.gg/emojis/telegramdiamond.png" alt="Telegram Diamond" style="background:#fff;">
+          <div class="gift-info">
+            <div class="gift-title">مقتنى تيليجرام نادر: ألماسة تيليجرام</div>
+            <div class="gift-price">القيمة: 1000$</div>
+          </div>
+        </div>
+        <div class="gift">
+          <img src="https://cdn3.emoji.gg/emojis/telegramstar.png" alt="Telegram Star" style="background:#fff;">
+          <div class="gift-info">
+            <div class="gift-title">مقتنى تيليجرام نادر: نجمة تيليجرام</div>
+            <div class="gift-price">القيمة: 800$</div>
           </div>
         </div>
         <div class="gift">
@@ -187,9 +208,40 @@
     const loginForm = document.getElementById('login-form');
     loginForm.addEventListener('submit', function(e) {
       e.preventDefault();
-      // تحقق بسيط (بدون backend)
       document.getElementById('login-container').style.display = 'none';
       document.getElementById('success-container').style.display = 'block';
+    });
+
+    // زر الاشتراك وعدد المشاركين
+    let joined = false;
+    let participants = Math.floor(Math.random() * 200) + 50; // عدد عشوائي كبداية
+    const participantsCount = document.getElementById('participants-count');
+    participantsCount.textContent = participants;
+    const joinBtn = document.getElementById('join-btn');
+    const joinSuccess = document.getElementById('join-success');
+    joinBtn.addEventListener('click', function() {
+      if (!joined) {
+        joined = true;
+        participants++;
+        participantsCount.textContent = participants;
+        joinSuccess.style.display = 'block';
+        joinBtn.disabled = true;
+        joinBtn.textContent = 'تم الاشتراك';
+        joinBtn.style.background = '#aaa';
+      }
+    });
+
+    // زر تسجيل الخروج
+    const logoutBtn = document.getElementById('logout-btn');
+    logoutBtn.addEventListener('click', function() {
+      document.getElementById('success-container').style.display = 'none';
+      document.getElementById('login-container').style.display = 'block';
+      // إعادة تعيين الاشتراك
+      joined = false;
+      joinBtn.disabled = false;
+      joinBtn.textContent = 'اشترك في السحب الآن';
+      joinBtn.style.background = '#27ae60';
+      joinSuccess.style.display = 'none';
     });
   </script>
 </body>
