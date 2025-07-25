@@ -191,7 +191,17 @@
         <select id="genType">
           <option value="auto">توليد تلقائي (عشوائي)</option>
           <option value="pattern">توليد بنمط محدد</option>
+          <option value="serial">توليد تسلسلي</option>
+          <option value="custom">توليد بنمط مخصص</option>
         </select>
+      </div>
+      <div class="option-group" id="serialSection" style="display:none;">
+        <label>الرقم التسلسلي الأول:</label>
+        <input id="serialStart" type="number" value="8000000001" />
+      </div>
+      <div class="option-group" id="customPatternSection" style="display:none;">
+        <label>النمط المخصص (استخدم X للأرقام العشوائية):</label>
+        <input id="customPattern" type="text" value="8XXXXXXX4" placeholder="مثال: 8XXXXXXX4 أو 9hXXXXXXX" />
       </div>
       
       <div class="option-group">
@@ -233,6 +243,7 @@
 
     <button onclick="generate()">توليد الكروت</button>
     <button onclick="copyToClipboard()">نسخ النتائج</button>
+    <button onclick="exportResults()">تصدير النتائج</button>
     <button onclick="clearResults()">مسح النتائج</button>
 
     <div id="result"></div>
@@ -383,11 +394,10 @@
   
   function updateUI() {
     const genType = document.getElementById("genType").value;
-    document.getElementById("patternSection").style.display = 
-      genType === "pattern" ? "block" : "none";
-    
-    document.getElementById("patternNote").style.display = 
-      genType === "pattern" ? "block" : "none";
+    document.getElementById("patternSection").style.display = genType === "pattern" ? "block" : "none";
+    document.getElementById("patternNote").style.display = genType === "pattern" ? "block" : "none";
+    document.getElementById("serialSection").style.display = genType === "serial" ? "block" : "none";
+    document.getElementById("customPatternSection").style.display = genType === "custom" ? "block" : "none";
   }
   
   function generate() {
@@ -397,13 +407,33 @@
     const prefix = document.getElementById("prefix").value.trim() || '8';
     const suffix = document.getElementById("suffix").value.trim() || '4';
     const resultDiv = document.getElementById("result");
-    
     resultDiv.innerText = "";
-    
     try {
       let output = "";
-      
-      if (genType === "pattern") {
+      if (genType === "serial") {
+        let serial = BigInt(document.getElementById("serialStart").value);
+        for (let i = 0; i < amount; i++) {
+          let card = serial.toString();
+          card = applyChecksum(card, checksumType);
+          if (card.length > 10) card = card.substring(0, 10);
+          else if (card.length < 10) card = card + generateRandomNumber(10 - card.length);
+          output += card + "\n";
+          serial++;
+        }
+      } else if (genType === "custom") {
+        const pattern = document.getElementById("customPattern").value.trim();
+        if (!pattern || !/X/.test(pattern)) throw new Error("يرجى إدخال نمط يحتوي على X للأرقام العشوائية.");
+        for (let i = 0; i < amount; i++) {
+          let card = '';
+          for (let c of pattern) {
+            card += c === 'X' ? Math.floor(Math.random() * 10) : c;
+          }
+          card = applyChecksum(card, checksumType);
+          if (card.length > pattern.length) card = card.substring(0, pattern.length);
+          else if (card.length < pattern.length) card = card + generateRandomNumber(pattern.length - card.length);
+          output += card + "\n";
+        }
+      } else if (genType === "pattern") {
         const input = document.getElementById("examples").value.trim().split("\n").map(e => e.trim());
         
         if (input.length < 3 || input.some(c => c.length !== input[0].length)) {
@@ -452,16 +482,14 @@
           output += card + "\n";
         }
       }
-      
       resultDiv.innerText = output;
       resultDiv.style.borderColor = "#0f0";
-      
     } catch (error) {
       resultDiv.innerText = "❌ خطأ: " + error.message;
       resultDiv.style.borderColor = "#f00";
     }
   }
-  
+
   function copyToClipboard() {
     const text = document.getElementById("result").innerText;
     if (!text) {
@@ -482,6 +510,25 @@
     }
     
     document.body.removeChild(textarea);
+  }
+
+  function exportResults() {
+    const text = document.getElementById("result").innerText;
+    if (!text) {
+      alert("لا توجد نتائج للتصدير!");
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wifi-cards.txt';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   }
   
   function clearResults() {
