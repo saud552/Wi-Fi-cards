@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8" />
+  <title>مولد كروت ذكي - ANONYMOUS YEMEN</title>
+  <style>
+    body {
+      background-color: #0a0a1a;
+      color: #0af;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      overflow: hidden;
+      padding: 20px;
+      background-image: radial-gradient(circle at center, #0a0a2a 0%, #000 100%);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: rgba(0, 10, 30, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #0af;
+      box-shadow: 0 0 20px rgba(0, 170, 255, 0.3);
+    }
+
+    input, button, textarea, select {
+      background-color: rgba(0, 20, 40, 0.8);
+      color: #0ff;
+      border: 1px solid #0af;
+      padding: 10px;
+      margin: 8px;
+      width: 90%;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button {
+      background: linear-gradient(to bottom, #005a8c, #002244);
+      cursor: pointer;
+      transition: all 0.3s;
+      width: auto;
+      padding: 10px 20px;
+    }
+
+    button:hover {
+      background: linear-gradient(to bottom, #0088cc, #004477);
+      transform: translateY(-2px);
+      box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+    }
+
+    #result {
+      white-space: pre-wrap;
+      margin: 15px 0;
+      border: 1px solid #0af;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      background-color: rgba(0, 15, 30, 0.9);
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 18px;
+      color: #0ff;
+      text-align: right;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 0.9em;
+      color: #08f;
+      opacity: 0.7;
+    }
+
+    #quote {
+      font-weight: bold;
+      font-size: 1.3em;
+      margin: 15px 0;
+      animation: colorChange 5s infinite linear;
+      text-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
+    }
+
+    @keyframes colorChange {
+      0% { color: #0af; }
+      25% { color: #0ff; }
+      50% { color: #a0f; }
+      75% { color: #f0a; }
+      100% { color: #0af; }
+    }
+
+    #eagle-container {
+      border: 3px double #0af;
+      padding: 15px;
+      display: inline-block;
+      margin: 15px auto;
+      border-radius: 50%;
+      background: rgba(0, 30, 60, 0.5);
+      box-shadow: 0 0 20px rgba(0, 170, 255, 0.4);
+      animation: rotate 20s linear infinite;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #eagle {
+      width: 100px;
+      filter: drop-shadow(0 0 5px #0ff);
+    }
+
+    h2 {
+      color: #0ff;
+      text-shadow: 0 0 10px rgba(0, 200, 255, 0.7);
+      margin: 15px 0;
+      font-size: 24px;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0;
+      color: #0cf;
+      font-size: 18px;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin: 15px 0;
+    }
+
+    .option-group {
+      background: rgba(0, 20, 40, 0.6);
+      border: 1px solid #08a;
+      border-radius: 8px;
+      padding: 10px;
+      min-width: 200px;
+    }
+
+    .matrix-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      overflow: hidden;
+      opacity: 0.1;
+    }
+
+    .matrix-line {
+      position: absolute;
+      white-space: pre;
+      color: #0f8;
+      font-size: 14px;
+      opacity: 0.3;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-100%); opacity: 0; }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+    
+    #patternNote {
+      color: #f80;
+      margin: 10px 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="matrix-bg" id="matrix-bg"></div>
+
+  <div class="container">
+    <div id="eagle-container">
+      <img id="eagle" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABUCAYAAADTAZAjAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB7UlEQVR4nO3cMU4DMQwE0Pe//4KeaDbxYVbkXJp7gxLJ3kV5CEYhlMGYzGQzGQzGQzGQzGQzGQzGQzGQzGQzGQzGUyE/g5OrZNO3F9vAfeewPoif/F+9Mg94b4ED8BnX9FzyEIBPxAf1Ne99e1m6dnTwOa3s5n7OrLy73jXedrgwKcQT8lXKp2MPjNeCE8YhH9zhVshvjCDv6qsUwhvGE8c1UshvjCDP6acUwl/GO84UosvjCDv6asUQwf+E84UVc4vjCDj6K8Uwh/GN8wU84vjCDj6qMUwhfGN84Uc4vjCDj6q8Uwl/GN8wUc4vjCDj6qcUwheGO8wUc4vjCDv6qcUwheGO8wUc4vjCDv6qcUwheGO8wUc4vjCDv6qcUwheGO8wUc4vjCDv6qcUwheGO8wUc4vjDD+qAVy6EMpK4ryAAAAAElFTkSuQmCC" alt="الطير الجمهوري اليمني" />
+    </div>
+
+    <div id="quote">"التقنية ليست مجرد أدوات، بل هي أدوات التحرر والمعرفة"</div>
+
+    <h2>𝗔𝗡𝗢𝗡𝗬𝗠𝗢𝗨𝗦 𝗬𝗘𝗠𝗘𝗡 - توليد كروت ذكي (ميكروتك)</h2>
+
+    <div class="options">
+      <div class="option-group">
+        <label>نوع التوليد:</label>
+        <select id="genType">
+          <option value="auto">توليد تلقائي (عشوائي)</option>
+          <option value="pattern">توليد بنمط محدد</option>
+        </select>
+      </div>
+      
+      <div class="option-group">
+        <label>نظام التحقق (Checksum):</label>
+        <select id="checksumType">
+          <option value="luhn">خوارزمية لوهن (Luhn)</option>
+          <option value="mod10">مجموع أرقام (Mod 10)</option>
+          <option value="none">بدون تحقق</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="patternSection" style="display:none;">
+      <label>أدخل 3 كروت مختلفة بنمط واحد (سطر لكل كرت):</label>
+      <textarea id="examples" rows="4" placeholder="مثال:\n8060457074\n8720149164\n8800347564"></textarea>
+      <div id="patternNote" style="display: none;">
+        سيتم توليد الجزء الأوسط فقط مع الحفاظ على البنية الأساسية
+      </div>
+    </div>
+
+    <div class="options">
+      <div class="option-group">
+        <label>بادئة الكروت:</label>
+        <input id="prefix" type="text" maxlength="1" value="8" placeholder="مثال: 8" />
+      </div>
+      
+      <div class="option-group">
+        <label>لاحقة الكروت:</label>
+        <input id="suffix" type="text" maxlength="1" value="4" placeholder="مثال: 4" />
+      </div>
+    </div>
+
+    <div class="options">
+      <div class="option-group">
+        <label>عدد الكروت:</label>
+        <input id="amount" type="number" value="10" min="1" max="1000" />
+      </div>
+    </div>
+
+    <button onclick="generate()">توليد الكروت</button>
+    <button onclick="copyToClipboard()">نسخ النتائج</button>
+    <button onclick="clearResults()">مسح النتائج</button>
+
+    <div id="result"></div>
+
+    <footer>
+      &copy; 2025 ANONYMOUS YEMEN - نظام التوليد الذكي لشبكات الميكروتك
+    </footer>
+  </div>
+
+<script>
+  // ===========================================
+  // الخوارزميات المتقدمة لتوليد الكروت
+  // ===========================================
+  
+  // خوارزمية التحقق من لوهن (Luhn Algorithm)
+  function luhnChecksum(number) {
+    let sum = 0;
+    let double = false;
+    
+    for (let i = number.length - 1; i >= 0; i--) {
+      let digit = parseInt(number[i], 10);
+      
+      if (double) {
+        digit *= 2;
+        if (digit > 9) digit -= 9;
+      }
+      
+      sum += digit;
+      double = !double;
+    }
+    
+    return (sum * 9) % 10;
+  }
+  
+  // خوارزمية التحقق Mod 10
+  function mod10Checksum(number) {
+    let sum = 0;
+    for (let i = 0; i < number.length; i++) {
+      sum += parseInt(number[i], 10);
+    }
+    return sum % 10;
+  }
+  
+  // توليد رقم عشوائي بطول محدد
+  function generateRandomNumber(length) {
+    let result = '';
+    for (let i = 0; i < length; i++) {
+      result += Math.floor(Math.random() * 10);
+    }
+    return result;
+  }
+  
+  // تحليل النمط من الكروت المدخلة
+  function detectPattern(cards) {
+    const length = cards[0].length;
+    let pattern = [];
+    
+    for (let i = 0; i < length; i++) {
+      const chars = cards.map(card => card[i]);
+      const allSame = chars.every(c => c === chars[0]);
+      
+      if (allSame) {
+        pattern.push({ type: 'fixed', value: chars[0] });
+      } else {
+        const isDigit = chars.every(c => /\d/.test(c));
+        const isLower = chars.every(c => /[a-z]/.test(c));
+        const isUpper = chars.every(c => /[A-Z]/.test(c));
+        
+        if (isDigit) pattern.push({ type: 'rand_digit' });
+        else if (isLower) pattern.push({ type: 'rand_lower' });
+        else if (isUpper) pattern.push({ type: 'rand_upper' });
+        else pattern.push({ type: 'rand_mix' });
+      }
+    }
+    
+    return pattern;
+  }
+  
+  // توليد كرت من النمط المحدد
+  function generateFromPattern(pattern, length) {
+    let card = '';
+    
+    for (let i = 0; i < length; i++) {
+      const p = pattern[i];
+      
+      if (p.type === 'fixed') {
+        card += p.value;
+      } else if (p.type === 'rand_digit') {
+        card += Math.floor(Math.random() * 10);
+      } else if (p.type === 'rand_lower') {
+        card += String.fromCharCode(97 + Math.floor(Math.random() * 26));
+      } else if (p.type === 'rand_upper') {
+        card += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      } else {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        card += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+    }
+    
+    return card;
+  }
+  
+  // توليد الجزء الأوسط مع الحفاظ على البنية
+  function generateMiddlePart(pattern, length) {
+    let middle = '';
+    
+    // توليد الجزء الأوسط باستثناء البادئة واللاحقة
+    for (let i = 1; i < length - 1; i++) {
+      const p = pattern[i];
+      
+      if (p.type === 'fixed') {
+        middle += p.value;
+      } else if (p.type === 'rand_digit') {
+        middle += Math.floor(Math.random() * 10);
+      } else if (p.type === 'rand_lower') {
+        middle += String.fromCharCode(97 + Math.floor(Math.random() * 26));
+      } else if (p.type === 'rand_upper') {
+        middle += String.fromCharCode(65 + Math.floor(Math.random() * 26));
+      } else {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        middle += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+    }
+    
+    return middle;
+  }
+  
+  // تطبيق نظام التحقق على الكرت
+  function applyChecksum(card, checksumType) {
+    if (checksumType === 'none') return card;
+    
+    const numericCard = card.replace(/\D/g, '');
+    if (numericCard.length === 0) return card;
+    
+    let checksum;
+    if (checksumType === 'luhn') {
+      checksum = luhnChecksum(numericCard);
+    } else {
+      checksum = mod10Checksum(numericCard);
+    }
+    
+    return numericCard + checksum;
+  }
+  
+  // ===========================================
+  // واجهة المستخدم والتحكم
+  // ===========================================
+  
+  function updateUI() {
+    const genType = document.getElementById("genType").value;
+    document.getElementById("patternSection").style.display = 
+      genType === "pattern" ? "block" : "none";
+    
+    document.getElementById("patternNote").style.display = 
+      genType === "pattern" ? "block" : "none";
+  }
+  
+  function generate() {
+    const genType = document.getElementById("genType").value;
+    const checksumType = document.getElementById("checksumType").value;
+    const amount = parseInt(document.getElementById("amount").value);
+    const prefix = document.getElementById("prefix").value.trim() || '8';
+    const suffix = document.getElementById("suffix").value.trim() || '4';
+    const resultDiv = document.getElementById("result");
+    
+    resultDiv.innerText = "";
+    
+    try {
+      let output = "";
+      
+      if (genType === "pattern") {
+        const input = document.getElementById("examples").value.trim().split("\n").map(e => e.trim());
+        
+        if (input.length < 3 || input.some(c => c.length !== input[0].length)) {
+          throw new Error("يرجى إدخال 3 كروت بنفس الطول والنمط.");
+        }
+        
+        const pattern = detectPattern(input);
+        
+        for (let i = 0; i < amount; i++) {
+          // توليد الجزء الأوسط (8 أرقام) مع الحفاظ على البنية
+          const middle = generateMiddlePart(pattern, 10);
+          
+          // تكوين الكرت مع البادئة واللاحقة
+          let card = prefix + middle + suffix;
+          
+          // تطبيق التحقق إذا لزم الأمر
+          card = applyChecksum(card, checksumType);
+          
+          // التأكد من الطول 10 أرقام
+          if (card.length > 10) {
+            card = card.substring(0, 10);
+          } else if (card.length < 10) {
+            card = card + generateRandomNumber(10 - card.length);
+          }
+          
+          output += card + "\n";
+        }
+      } else {
+        for (let i = 0; i < amount; i++) {
+          // توليد الجزء الأوسط (8 أرقام)
+          const middle = generateRandomNumber(8);
+          
+          // تكوين الكرت مع البادئة واللاحقة
+          let card = prefix + middle + suffix;
+          
+          // تطبيق التحقق إذا لزم الأمر
+          card = applyChecksum(card, checksumType);
+          
+          // التأكد من الطول 10 أرقام
+          if (card.length > 10) {
+            card = card.substring(0, 10);
+          } else if (card.length < 10) {
+            card = card + generateRandomNumber(10 - card.length);
+          }
+          
+          output += card + "\n";
+        }
+      }
+      
+      resultDiv.innerText = output;
+      resultDiv.style.borderColor = "#0f0";
+      
+    } catch (error) {
+      resultDiv.innerText = "❌ خطأ: " + error.message;
+      resultDiv.style.borderColor = "#f00";
+    }
+  }
+  
+  function copyToClipboard() {
+    const text = document.getElementById("result").innerText;
+    if (!text) {
+      alert("لا توجد نتائج للنسخ!");
+      return;
+    }
+    
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    
+    try {
+      document.execCommand("copy");
+      alert("تم نسخ " + text.split('\n').length + " كرت بنجاح!");
+    } catch (err) {
+      alert("حدث خطأ أثناء النسخ: " + err);
+    }
+    
+    document.body.removeChild(textarea);
+  }
+  
+  function clearResults() {
+    document.getElementById("result").innerText = "";
+    document.getElementById("result").style.borderColor = "#0af";
+  }
+  
+  // ===========================================
+  // تأثيرات الخلفية
+  // ===========================================
+  
+  function createMatrixEffect() {
+    const container = document.getElementById("matrix-bg");
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    
+    for (let i = 0; i < Math.floor(width / 20); i++) {
+      const line = document.createElement("div");
+      line.className = "matrix-line";
+      line.style.left = Math.random() * width + "px";
+      line.style.animationDuration = 3 + Math.random() * 7 + "s";
+      line.style.animationDelay = Math.random() * 5 + "s";
+      line.textContent = generateMatrixText();
+      container.appendChild(line);
+    }
+  }
+  
+  function generateMatrixText() {
+    const chars = "0101010101101010ميكروتكYEMENANONYMOUS";
+    let text = "";
+    const lines = 15 + Math.floor(Math.random() * 10);
+    
+    for (let i = 0; i < lines; i++) {
+      text += chars.charAt(Math.floor(Math.random() * chars.length)) + "\n";
+    }
+    
+    return text;
+  }
+  
+  // ===========================================
+  // تهيئة الصفحة
+  // ===========================================
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    createMatrixEffect();
+    setInterval(createMatrixEffect, 10000);
+    
+    document.getElementById("genType").addEventListener("change", updateUI);
+    updateUI();
+  });
+  
+  document.addEventListener('mousemove', e => {
+    const eagle = document.getElementById('eagle-container');
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 4;
+    const maxMove = 20;
+    
+    let diffX = e.clientX - centerX;
+    let diffY = e.clientY - centerY;
+    
+    diffX = Math.max(-maxMove, Math.min(maxMove, diffX)) / maxMove;
+    diffY = Math.max(-maxMove, Math.min(maxMove, diffY)) / maxMove;
+    
+    eagle.style.transform = `rotate(${diffX * 10}deg) translate(${diffX * 10}px, ${diffY * 10}px)`;
+  });
+</script>
+
+</body>
+</html>
